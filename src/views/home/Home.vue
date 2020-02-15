@@ -1,21 +1,31 @@
 <template>
-  <div class="home">
+  <div id="home">
     <nav-bar class="home-nav">
       <template v-slot:center>购物街</template>
     </nav-bar>
-    <home-swiper :banner="banner"></home-swiper>
-    <home-recommend :recommend="recommend"></home-recommend>
-    <feature-view></feature-view>
-    <tab-control :titles="['流行','新款','精选']" @tabClick="tabclick"></tab-control>
-    <goods-list :goods="goodsCount"></goods-list>
+    <better-scroll class="content" ref="betterScroll" 
+                   :probeType="3" 
+                   :pullUpload="true" 
+                   @pageScroll="contentScroll" @pullingUp="loadMore">
+      <home-swiper :banner="banner"></home-swiper>
+      <home-recommend :recommend="recommend"></home-recommend>
+      <feature-view></feature-view>
+      <tab-control :titles="['流行','新款','精选']" @tabClick="tabclick"></tab-control>
+      <goods-list :goods="goodsCount"></goods-list>
+    </better-scroll>
+
+    <top-back @click.native="backClick" v-show="isShowBackTop"></top-back>
 
   </div>
 </template>
 
 <script>
 import NavBar from "components/common/navbar/NavBar";
+import BetterScroll from "components/common/scroll/Scroll.vue"
+
 import GoodsList from "components/content/goods/GoodsList.vue"
 import TabControl from "components/content/tabControl/TabControl.vue"
+import TopBack from "components/content/Topback/TopBack.vue"
 
 import {getHomeMultidata, getHomeGoods} from 'network/home.js';
 
@@ -34,7 +44,8 @@ import FeatureView from "./childComps/FeatureView.vue"
           'new': {page: 0,list: []},
           'sell': {page: 0,list: []}
         },
-        currentType: 'pop'
+        currentType: 'pop',
+        isShowBackTop: false
       }
     },
     components: {
@@ -43,7 +54,9 @@ import FeatureView from "./childComps/FeatureView.vue"
       HomeRecommend,
       FeatureView,
       TabControl,
-      GoodsList
+      GoodsList,
+      BetterScroll,
+      TopBack
     },
     computed: {
       goodsCount() {
@@ -51,6 +64,7 @@ import FeatureView from "./childComps/FeatureView.vue"
       }
     },
     methods: {
+      //获取页面数据
       getHomeData() {
         getHomeMultidata().then(res => {
         this.banner = res.data.data.banner.list;
@@ -62,9 +76,11 @@ import FeatureView from "./childComps/FeatureView.vue"
         getHomeGoods(type,page).then(res => {
           this.goods[type].list.push(...res.data.data.list)
           this.goods[type].page += 1
+
+          this.$refs.betterScroll.finishPullUp()
         })
       },
-
+      //页面数据切换
       tabclick(item) {
         switch(item) {
           case 0:
@@ -77,6 +93,19 @@ import FeatureView from "./childComps/FeatureView.vue"
             this.currentType='sell'
             break;
         }
+      },
+      //topBack点击回到顶部
+      backClick() {
+        console.log(this.$refs.betterScroll.ScrollTo)
+        this.$refs.betterScroll.ScrollTo(0, 0,500)
+      },
+      //监听topback是否出现
+      contentScroll(position) {
+        this.isShowBackTop = (-position.y) > 1000 
+      },
+      //上拉加载更多
+      loadMore() {
+        this.getHomeGoods(this.currentType)
       }
     },
     created() {
@@ -104,5 +133,20 @@ import FeatureView from "./childComps/FeatureView.vue"
   top:0;
 
   z-index: 9;
-};
+}
+
+.content{
+    overflow: hidden;
+    position: absolute;
+    top: 44px;
+    bottom: 49px;
+    left: 0;
+    right: 0;
+}
+
+#home{
+    /*padding-top: 44px;*/
+    height: 100vh;
+    position: relative;
+}
 </style>

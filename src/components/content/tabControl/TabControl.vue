@@ -41,8 +41,6 @@ return {
 <style lang='scss' scoped>
 //@import url(); 引入公共css类
 .tab-control{
-    position: sticky;
-    top:44px;
     background-color: #fff;
     display: flex;
     text-align: center;
