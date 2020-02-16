@@ -3,14 +3,19 @@
     <nav-bar class="home-nav">
       <template v-slot:center>购物街</template>
     </nav-bar>
+    <tab-control :titles="['流行','新款','精选']" 
+                  @tabClick="tabclick" 
+                  ref="tabControl1" 
+                  v-show="isShowTabControl" class="tab-control"></tab-control>
     <better-scroll class="content" ref="betterScroll" 
                    :probeType="3" 
-                   :pullUpload="true" 
-                   @pageScroll="contentScroll" @pullingUp="loadMore">
-      <home-swiper :banner="banner"></home-swiper>
+                   @pageScroll="contentScroll" 
+                   :pullUpLoad="true" 
+                   @loadMore="loadmore">
+      <home-swiper :banner="banner" @swiperImageLoad="swiperImageLoad"></home-swiper>
       <home-recommend :recommend="recommend"></home-recommend>
       <feature-view></feature-view>
-      <tab-control :titles="['流行','新款','精选']" @tabClick="tabclick"></tab-control>
+      <tab-control :titles="['流行','新款','精选']" @tabClick="tabclick" ref="tabControl2"></tab-control>
       <goods-list :goods="goodsCount"></goods-list>
     </better-scroll>
 
@@ -45,7 +50,9 @@ import FeatureView from "./childComps/FeatureView.vue"
           'sell': {page: 0,list: []}
         },
         currentType: 'pop',
-        isShowBackTop: false
+        isShowBackTop: false,
+        isShowTabControl: false,
+        offsetTop: 0
       }
     },
     components: {
@@ -64,6 +71,16 @@ import FeatureView from "./childComps/FeatureView.vue"
       }
     },
     methods: {
+      //防抖函数
+      deBounce(func,delaytime) {
+        let timeId = null;
+        return function (...args)  {
+          timeId && clearTimeout(timeId)
+          timeId = setTimeout(() => {
+            func.apply(this,args)
+          },delaytime)
+        }
+      },
       //获取页面数据
       getHomeData() {
         getHomeMultidata().then(res => {
@@ -82,6 +99,8 @@ import FeatureView from "./childComps/FeatureView.vue"
       },
       //页面数据切换
       tabclick(item) {
+        this.$refs.tabControl1.currentIndex= item
+        this.$refs.tabControl2.currentIndex= item
         switch(item) {
           case 0:
             this.currentType='pop'
@@ -96,16 +115,21 @@ import FeatureView from "./childComps/FeatureView.vue"
       },
       //topBack点击回到顶部
       backClick() {
-        console.log(this.$refs.betterScroll.ScrollTo)
         this.$refs.betterScroll.ScrollTo(0, 0,500)
       },
       //监听topback是否出现
       contentScroll(position) {
-        this.isShowBackTop = (-position.y) > 1000 
+        this.isShowBackTop = (-position.y) > 1000
+
+        this.isShowTabControl = (-position.y) > this.offsetTop
       },
       //上拉加载更多
-      loadMore() {
+      loadmore() {
         this.getHomeGoods(this.currentType)
+      },
+      //获取tab-control的offsetTop
+      swiperImageLoad() {
+        this.offsetTop = this.$refs.tabControl2.$el.offsetTop
       }
     },
     created() {
@@ -114,6 +138,18 @@ import FeatureView from "./childComps/FeatureView.vue"
       this.getHomeGoods('pop')
       this.getHomeGoods('new')
       this.getHomeGoods('sell')
+    },
+    mounted() {
+      const refresh = this.deBounce(this.$refs.betterScroll.Refresh,100)
+      // function(...args) {
+      //     console.log(this)
+      //     timeId && clearTimeout(timeId)
+      //     timeId = setTimeout(() => {
+      //       func.apply(this,args)
+      //     },delaytime)
+      this.$bus.$on('imageLoad', () => {
+        refresh()
+      })
     },
   }
 </script>
@@ -127,12 +163,12 @@ import FeatureView from "./childComps/FeatureView.vue"
   background-color: var(--color-tint);
   color: aliceblue;
 
-  position: fixed;
+  /* position: fixed;
   left:0;
   right:0;
   top:0;
 
-  z-index: 9;
+  z-index: 9; */
 }
 
 .content{
@@ -148,5 +184,9 @@ import FeatureView from "./childComps/FeatureView.vue"
     /*padding-top: 44px;*/
     height: 100vh;
     position: relative;
+}
+
+.tab-control{
+  position: relative;
 }
 </style>

@@ -19,7 +19,7 @@ components: {},
 data() {
 //这里存放数据
 return {
-  betterScroll:null
+  betterScroll:null,
 };
 },
 props: {
@@ -36,10 +36,16 @@ methods: {
   ScrollTo(x ,y ,time=300) {
     this.betterScroll.scrollTo(x, y, time)
   },
+  //上拉加载操作完成一次
   finishPullUp() {
     this.betterScroll.finishPullUp()
+  },
+  //重置wrapper.height
+  Refresh() {
+    this.betterScroll.refresh()
   }
 },
+
 mounted() {
   //1.创建BScroll对象
   this.betterScroll = new BScroll(this.$refs.wrapper, {
@@ -54,10 +60,13 @@ mounted() {
   })
 
   //3.监听上拉事件
-  this.betterScroll.on('pullingUp',()=>{this.$emit('pullingUp')})
+  this.betterScroll.on('pullingUp',() => {
+    this.$emit('loadMore')
+  })
 },
 }
 </script>
+
 <style lang='scss' scoped>
 //@import url(); 引入公共css类
 
