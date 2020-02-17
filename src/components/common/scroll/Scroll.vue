@@ -43,7 +43,11 @@ methods: {
   //重置wrapper.height
   Refresh() {
     this.betterScroll.refresh()
+  },
+  scrollY() {
+    return this.betterScroll.y
   }
+
 },
 
 mounted() {

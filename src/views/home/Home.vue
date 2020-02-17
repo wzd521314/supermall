@@ -52,7 +52,8 @@ import FeatureView from "./childComps/FeatureView.vue"
         currentType: 'pop',
         isShowBackTop: false,
         isShowTabControl: false,
-        offsetTop: 0
+        offsetTop: 0, 
+        scrollY: 1
       }
     },
     components: {
@@ -134,7 +135,6 @@ import FeatureView from "./childComps/FeatureView.vue"
     },
     created() {
       this.getHomeData(),
-
       this.getHomeGoods('pop')
       this.getHomeGoods('new')
       this.getHomeGoods('sell')
@@ -150,6 +150,14 @@ import FeatureView from "./childComps/FeatureView.vue"
       this.$bus.$on('imageLoad', () => {
         refresh()
       })
+    },
+    activated() {
+      this.$refs.betterScroll.ScrollTo(0, this.scrollY,1)
+      this.$refs.betterScroll.Refresh()
+    },
+    deactivated() {
+      this.scrollY = this.$refs.betterScroll.scrollY()
+      console.log(this.scrollY)
     },
   }
 </script>
