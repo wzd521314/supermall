@@ -7,8 +7,5 @@ export function request(config) {
         timeout: 5000
     })
 
-   
-
-
     return instance(config)
 }

@@ -2,12 +2,14 @@
 <template>
   <div class='details'>
     <navbar class="detail-navbar"></navbar>
-    <Scroll class="content" ref="scroll">
+    <Scroll class="content" ref="betterScroll">
       <swiper :topImages="topImages"></swiper>
       <detail-base-info :goods="goods"></detail-base-info>
       <detail-shop-info :shop="shop"></detail-shop-info>
       <detail-goods-info :detailInfo="detailInfo" @imageLoad="imageLoad"></detail-goods-info>
       <detail-param-info :paramInfo="paramsInfo"></detail-param-info>
+      <detail-comment-info :commentInfo="commentInfo"></detail-comment-info>
+      <goods-list :goods="recommend"></goods-list>
     </Scroll>
   </div>
 </template>
@@ -21,10 +23,15 @@ import DetailBaseInfo from './childComponents/DetailBaseInfo'
 import DetailShopInfo from './childComponents/DetailShopInfo'
 import DetailGoodsInfo from './childComponents/DetailGoodsInfo'
 import DetailParamInfo from './childComponents/DetailParamInfo'
+import DetailCommentInfo from './childComponents/DetailCommentInfo'
+
+import GoodsList from "components/content/goods/GoodsList.vue"
 
 import Scroll from "components/common/scroll/Scroll.vue"
 
-import {getDetail, Goods, Shop, GoodsParam} from "network/details";
+import {imgListenerMixin} from 'common/mixin.js'
+
+import {getDetail, Goods, Shop, GoodsParam, getCommend} from "network/details";
 
 export default {
 name: "Detail",
@@ -37,6 +44,8 @@ components: {
   DetailShopInfo,
   DetailGoodsInfo,
   DetailParamInfo,
+  DetailCommentInfo,
+  GoodsList,
   Scroll
 },
 data() {
@@ -47,15 +56,19 @@ return {
   goods: {},
   shop: {},
   detailInfo: {},
-  paramsInfo: {}
+  paramsInfo: {},
+  commentInfo: {},
+  recommend: []
 };
 },
 
 methods: {
   imageLoad() {
-    this.$refs.scroll.Refresh()
+    this.$refs.betterScroll.Refresh()
   }
 },
+
+mixins: [imgListenerMixin],
 
 created() {
   console.log('我加载了')
@@ -64,7 +77,6 @@ created() {
   //2.获取对应item的数据
   getDetail(this.iid).then((res) => {
 
-    console.log(res)
     const data = res.data.result;
     this.topImages = data.itemInfo.topImages
 
@@ -77,8 +89,20 @@ created() {
     this.detailInfo = data.detailInfo;
     //6.获取参数信息
     this.paramsInfo = new GoodsParam(data.itemParams.info,data.itemParams.rule)
+    //7.获取评论信息
+    if (data.rate.cRate !== 0) {
+          this.commentInfo = data.rate.list[0] || {};
+        }
   })
-
+  //3.请求推荐数据
+  getCommend().then(res => {
+    
+   this.recommend = res.data.data.list
+   console.log(this.recommend)
+  })
+},
+destroyed() {
+  this.$bus.$off('imageLoad', this.itemImgListener)
 },
 }
 </script>

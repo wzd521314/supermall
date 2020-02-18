@@ -1,7 +1,7 @@
 <!--  -->
 <template>
 <div class="goods-item">
-    <img :src="goodsItem.show.img" alt="" @load="imageLoad" @click="itemsClick">
+    <img :src="showImage" alt="" @load="imageLoad" @click="itemsClick">
     <div class="goods-info">
       <p>{{goodsItem.title}}</p>
       <span class="price">{{goodsItem.price}}</span>
@@ -17,6 +17,11 @@
 export default {
 //import引入的组件需要注入到对象中才能使用
 components: {},
+computed: {
+  showImage() {
+    return  (this.goodsItem.img || this.goodsItem.image || this.goodsItem.show.img)
+  }
+},
 props: {
   goodsItem: {
     type: Object,

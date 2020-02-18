@@ -33,6 +33,8 @@ import TabControl from "components/content/tabControl/TabControl.vue"
 import TopBack from "components/content/Topback/TopBack.vue"
 
 import {getHomeMultidata, getHomeGoods} from 'network/home.js';
+import {debounce} from 'common/utils'
+import {imgListenerMixin} from 'common/mixin.js'
 
 import HomeSwiper from "./childComps/HomeSwiper.vue"
 import HomeRecommend from "./childComps/HomeRecommend.vue"
@@ -73,15 +75,15 @@ import FeatureView from "./childComps/FeatureView.vue"
     },
     methods: {
       //防抖函数
-      deBounce(func,delaytime) {
-        let timeId = null;
-        return function (...args)  {
-          timeId && clearTimeout(timeId)
-          timeId = setTimeout(() => {
-            func.apply(this,args)
-          },delaytime)
-        }
-      },
+      // deBounce(func,delaytime) {
+      //   let timeId = null;
+      //   return function (...args)  {
+      //     timeId && clearTimeout(timeId)
+      //     timeId = setTimeout(() => {
+      //       func.apply(this,args)
+      //     },delaytime)
+      //   }
+      // },
       //获取页面数据
       getHomeData() {
         getHomeMultidata().then(res => {
@@ -140,23 +142,16 @@ import FeatureView from "./childComps/FeatureView.vue"
       this.getHomeGoods('sell')
     },
     mounted() {
-      const refresh = this.deBounce(this.$refs.betterScroll.Refresh,100)
-      // function(...args) {
-      //     console.log(this)
-      //     timeId && clearTimeout(timeId)
-      //     timeId = setTimeout(() => {
-      //       func.apply(this,args)
-      //     },delaytime)
-      this.$bus.$on('imageLoad', () => {
-        refresh()
-      })
+      
     },
+    mixins: [imgListenerMixin],
     activated() {
       this.$refs.betterScroll.ScrollTo(0, this.scrollY,1)
       this.$refs.betterScroll.Refresh()
     },
     deactivated() {
       this.scrollY = this.$refs.betterScroll.scrollY()
+      this.$bus.$off('imageLoad', this.itemImgListener)
       console.log(this.scrollY)
     },
   }
