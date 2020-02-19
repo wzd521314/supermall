@@ -1,16 +1,18 @@
 <!--  -->
 <template>
   <div class='details'>
-    <navbar class="detail-navbar"></navbar>
-    <Scroll class="content" ref="betterScroll">
+    <navbar class="detail-navbar" @titleClick="titleClick" ref="detailBar"></navbar>
+    <Scroll class="content" ref="betterScroll" @pageScroll="pageScroll" :probeType="3">
       <swiper :topImages="topImages"></swiper>
       <detail-base-info :goods="goods"></detail-base-info>
       <detail-shop-info :shop="shop"></detail-shop-info>
       <detail-goods-info :detailInfo="detailInfo" @imageLoad="imageLoad"></detail-goods-info>
-      <detail-param-info :paramInfo="paramsInfo"></detail-param-info>
-      <detail-comment-info :commentInfo="commentInfo"></detail-comment-info>
-      <goods-list :goods="recommend"></goods-list>
+      <detail-param-info :paramInfo="paramsInfo" ref="param"></detail-param-info>
+      <detail-comment-info :commentInfo="commentInfo" ref="comment"></detail-comment-info>
+      <goods-list :goods="recommend" ref="recommend"></goods-list>
     </Scroll>
+    <detail-bottom-bar></detail-bottom-bar>
+    <top-back @click.native="backClick" v-show="isShowBackTop"></top-back>
   </div>
 </template>
 
@@ -24,12 +26,15 @@ import DetailShopInfo from './childComponents/DetailShopInfo'
 import DetailGoodsInfo from './childComponents/DetailGoodsInfo'
 import DetailParamInfo from './childComponents/DetailParamInfo'
 import DetailCommentInfo from './childComponents/DetailCommentInfo'
+import DetailBottomBar from './childComponents/DetailBottomBar'
 
+import TopBack from "components/content/Topback/TopBack.vue"
 import GoodsList from "components/content/goods/GoodsList.vue"
 
 import Scroll from "components/common/scroll/Scroll.vue"
 
 import {imgListenerMixin} from 'common/mixin.js'
+import {debounce} from 'common/utils'
 
 import {getDetail, Goods, Shop, GoodsParam, getCommend} from "network/details";
 
@@ -46,7 +51,9 @@ components: {
   DetailParamInfo,
   DetailCommentInfo,
   GoodsList,
-  Scroll
+  Scroll,
+  DetailBottomBar,
+  TopBack
 },
 data() {
 //这里存放数据
@@ -58,20 +65,47 @@ return {
   detailInfo: {},
   paramsInfo: {},
   commentInfo: {},
-  recommend: []
+  recommend: [],
+  getDtailElementY: null,
+  getDtailElementYs: [],
+  detailImageLoad: null,
+  isShowBackTop: false
 };
 },
 
 methods: {
   imageLoad() {
-    this.$refs.betterScroll.Refresh()
-  }
+    this.detailImageLoad();
+    this.getDtailElementY()
+  },
+
+  titleClick(index) {
+    console.log(this.getDtailElementYs[index])
+    this.$refs.betterScroll.ScrollTo(0,-this.getDtailElementYs[index],100)
+  },
+
+  pageScroll(position) {
+    //监听topback是否出现
+    this.isShowBackTop = (-position.y) > 1000
+    //判断页面处于哪个部分
+    for (let index = 0; index < (this.getDtailElementYs.length - 1); index++) {
+      if((-position.y >this.getDtailElementYs[index] && -position.y <this.getDtailElementYs[index + 1]) && this.$refs.detailBar.currentIndex !==index) {
+        this.$refs.detailBar.currentIndex = index
+        console.log('我进来这个函数了')
+      }
+    }
+  },
+
+  //topBack点击回到顶部
+  backClick() {
+    this.$refs.betterScroll.ScrollTo(0, 0,500)
+  },
+  
 },
 
 mixins: [imgListenerMixin],
 
 created() {
-  console.log('我加载了')
   //1.保存当前item的路由id
   this.iid = this.$route.params.id
   //2.获取对应item的数据
@@ -98,8 +132,21 @@ created() {
   getCommend().then(res => {
     
    this.recommend = res.data.data.list
-   console.log(this.recommend)
   })
+  //获取各个元素得offsetTOP
+  this.getDtailElementY = debounce(() => {
+     this.getDtailElementYs = [];
+    this.getDtailElementYs.push(0)
+    this.getDtailElementYs.push(this.$refs.param.$el.offsetTop)
+    this.getDtailElementYs.push(this.$refs.comment.$el.offsetTop)
+    this.getDtailElementYs.push(this.$refs.recommend.$el.offsetTop)
+    this.getDtailElementYs.push(Number.MAX_VALUE)
+
+    console.log(this.getDtailElementYs)
+  },100)
+},
+mounted() {
+  this.detailImageLoad = debounce(this.$refs.betterScroll.Refresh,100)
 },
 destroyed() {
   this.$bus.$off('imageLoad', this.itemImgListener)
@@ -116,7 +163,7 @@ destroyed() {
 }
 
 .content{
-  height: calc(100% - 44px);
+  height: calc(100% - 44px - 49px);
 }
 
 .detail-navbar{
