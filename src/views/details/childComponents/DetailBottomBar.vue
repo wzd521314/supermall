@@ -15,7 +15,7 @@
       </div>
     </div>
     <div class="bar-item bar-right">
-      <div class="cart">加入购物车</div>
+      <div class="cart" @click="cartClick">加入购物车</div>
       <div class="buy">购买</div>
     </div>
   </div>
@@ -35,6 +35,9 @@ export default {
   created() {
   },
   methods: {
+    cartClick() {
+      this.$emit('cartClick')
+    }
   }
 };
 </script>

@@ -11,7 +11,7 @@
       <detail-comment-info :commentInfo="commentInfo" ref="comment"></detail-comment-info>
       <goods-list :goods="recommend" ref="recommend"></goods-list>
     </Scroll>
-    <detail-bottom-bar></detail-bottom-bar>
+    <detail-bottom-bar @cartClick="addToCart"></detail-bottom-bar>
     <top-back @click.native="backClick" v-show="isShowBackTop"></top-back>
   </div>
 </template>
@@ -80,8 +80,7 @@ methods: {
   },
 
   titleClick(index) {
-    console.log(this.getDtailElementYs[index])
-    this.$refs.betterScroll.ScrollTo(0,-this.getDtailElementYs[index],100)
+  this.$refs.betterScroll.ScrollTo(0,-(this.getDtailElementYs[index]+1),100)
   },
 
   pageScroll(position) {
@@ -91,7 +90,6 @@ methods: {
     for (let index = 0; index < (this.getDtailElementYs.length - 1); index++) {
       if((-position.y >this.getDtailElementYs[index] && -position.y <this.getDtailElementYs[index + 1]) && this.$refs.detailBar.currentIndex !==index) {
         this.$refs.detailBar.currentIndex = index
-        console.log('我进来这个函数了')
       }
     }
   },
@@ -100,7 +98,21 @@ methods: {
   backClick() {
     this.$refs.betterScroll.ScrollTo(0, 0,500)
   },
-  
+
+  //点击添加购物车
+  addToCart() {
+    //获取要添加至购物车商品的信息
+    console.log("点击了购物车一次")
+    const product = {}
+    product.image = this.topImages[0];
+    product.title = this.goods.title;
+    product.desc = this.goods.desc;
+    product.price = this.goods.realPrice;
+    product.iid = this.iid;
+    console.log(product)
+    //将该商品的信息添加至购物车内
+    this.$store.commit('addCart',product)
+  }  
 },
 
 mixins: [imgListenerMixin],
@@ -135,14 +147,12 @@ created() {
   })
   //获取各个元素得offsetTOP
   this.getDtailElementY = debounce(() => {
-     this.getDtailElementYs = [];
+    this.getDtailElementYs = [];
     this.getDtailElementYs.push(0)
     this.getDtailElementYs.push(this.$refs.param.$el.offsetTop)
     this.getDtailElementYs.push(this.$refs.comment.$el.offsetTop)
     this.getDtailElementYs.push(this.$refs.recommend.$el.offsetTop)
     this.getDtailElementYs.push(Number.MAX_VALUE)
-
-    console.log(this.getDtailElementYs)
   },100)
 },
 mounted() {

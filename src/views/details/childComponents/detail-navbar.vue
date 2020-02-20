@@ -6,7 +6,7 @@
       <img src="~assets/img/common/back.svg" alt="">
     </div>
     <div slot="center" class="navbar-center" >
-      <div class="title-item" v-for="(item,index) in title" :key="item" :class="{active: index === currentIndex}" @click="titleClick(index)">{{item}}</div>
+      <div class="title-item" v-for="(item,index) in title" :key="index" :class="{active: index == currentIndex}" @click="titleClick(index)">{{item}}</div>
     </div>
   </detail-navbar>
 </div>
@@ -30,8 +30,9 @@ return {
 },
 methods: {
   titleClick(index) {
-    this.currentIndex = index
     this.$emit('titleClick',index)
+    this.currentIndex = index
+    
   },
   backClick() {
     this.$router.go(-1)

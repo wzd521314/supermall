@@ -43,7 +43,6 @@ methods: {
   //重置wrapper.height
   Refresh() {
     this.betterScroll.refresh()
-    console.log('我好了')
   },
   scrollY() {
     return this.betterScroll.y
