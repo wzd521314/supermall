@@ -109,9 +109,13 @@ methods: {
     product.desc = this.goods.desc;
     product.price = this.goods.realPrice;
     product.iid = this.iid;
-    console.log(product)
     //将该商品的信息添加至购物车内
-    this.$store.commit('addCart',product)
+    //this.$store.commit('addCart',product)
+    //返回toast信息
+    this.$store.dispatch('addToast',product).then((res) => {
+      this.$mytoast.toastShow(res)
+      
+    })
   }  
 },
 

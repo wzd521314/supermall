@@ -31,7 +31,26 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    addToast(context,payload) {
+      return  new Promise((resolve,reject) => {
+        let Product = context.state.cartList.find(item => item.iid === payload.iid);
+        if(Product) {
+          Product.count += 1
+          resolve('当前商品数量+1')
+        } else {
+          payload.count = 1;
+          payload.checked = true;
+          context.state.cartList.push(payload);
+          resolve('添加了新的商品')
+        }
+      })
+
+      
+    }
+      
+      
   },
+
   modules: {
   }
 })

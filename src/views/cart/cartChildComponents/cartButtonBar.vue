@@ -2,7 +2,7 @@
 <template>
 <div class='bottom-bar'>
   <div class="check-content">
-    <check-button class="check-button"></check-button>
+    <check-button class="check-button" :isChecked="isSelectorAll" @click.native="allSelector"></check-button>
     <span>全选</span>
   </div>
 
@@ -31,6 +31,11 @@ computed: {
     return '￥' + this.$store.state.cartList.filter(item => item.checked).reduce((preventValue,item) => {
       return preventValue + item.price * item.count
     },0).toFixed(2)
+  },
+  isSelectorAll() {
+    if (this.$store.state.cartList.length === 0) {return false}
+    return !this.$store.state.cartList.some((item) => item.checked === false)
+      
   }
 },
 data() {
@@ -38,6 +43,20 @@ data() {
 return {
 
 };
+},
+methods: {
+  allSelector() {
+    console.log('全选')
+    if(this.isSelectorAll) {
+      this.$store.state.cartList.forEach((item) => {
+        item.checked = false
+      }) 
+    } else {
+      this.$store.state.cartList.forEach((item) => {
+        item.checked = true
+      })
+    }
+  }
 },
 }
 </script>
